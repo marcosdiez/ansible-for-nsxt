@@ -62,7 +62,7 @@ options:
                       'present' is used to create or update resource.
                       'absent' is used to delete resource."
         required: true
-    
+
 '''
 
 EXAMPLES = '''
@@ -82,7 +82,9 @@ EXAMPLES = '''
           root_password: "Admin!23Admin"
         deployment_config:
           placement_type: VsphereClusterNodeVMDeploymentConfig
-          vc_id: "7503e86e-c502-46fc-8d91-45a06d314d88"
+          vc_name: "TheOnlyvCenter"
+          vc_username: "vcenter-username"
+          vc_password: "vcenter-password"
           management_network: "network-44"
           ignore_ssl_verification: True
           disk_provisioning: "LAZY_ZEROED_THICK"
@@ -270,12 +272,12 @@ def inject_vcenter_info(module, manager_url, mgr_username, mgr_password, validat
       if deployment_config.__contains__('host'):
         host_id = deployment_request['deployment_config'].pop('host', None)
         deployment_request['deployment_config']['host_id'] = host_id
- 
+
       cluster_id = deployment_request['deployment_config'].pop('compute', None)
       storage_id = deployment_request['deployment_config'].pop('storage', None)
       management_network_id = deployment_request['deployment_config'].pop('management_network', None)
       deployment_request['deployment_config'].pop('ignore_ssl_verification', None)
- 
+
       deployment_request['deployment_config']['compute_id'] = cluster_id
       deployment_request['deployment_config']['storage_id'] = storage_id
       deployment_request['deployment_config']['management_network_id'] = management_network_id
