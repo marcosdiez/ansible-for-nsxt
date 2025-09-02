@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright 2018 VMware, Inc.
@@ -99,6 +99,24 @@ options:
                         this flag should be set as true. This is specific to TKGS. NSX-T 3.0 only"
         required: false
         type: bool
+    access_level_for_oidc:
+        description: "Specifies the access level for the OIDC provider
+                        Only makes sense if set_as_oidc_provider = true.
+
+                        Valid values are: LIMITED and FULL
+
+                        FULL means Full Access to NSX (required for vSphere for Kubernetes and vSphere Lifecycle Manager)
+
+                        LIMITED means Limited Access to NSX (required for vSphere Lifecycle Manager)"
+        required: false
+        type: str
+    create_service_account:
+        description: "Specifies whether service account is created or not on compute manager
+                    Enable this flag to create service account user on compute manager. This is
+                    required by features such as vSphere Lifecycle Manager for authentication with
+                    vAPIs from nsx."
+    required: false
+    type: bool
     state:
         choices:
             - present
@@ -108,7 +126,7 @@ options:
                       'absent' is used to delete resource."
         required: true
 
-    
+
 '''
 
 EXAMPLES = '''
@@ -233,8 +251,16 @@ def check_for_update(module, manager_url, mgr_username, mgr_password, validate_c
         existing_compute_manager['credential']['thumbprint'] != compute_manager_with_ids['credential']['thumbprint'] or \
         existing_compute_manager['origin_type'] != compute_manager_with_ids['origin_type']:
         return True
-    if existing_compute_manager.__contains__('set_as_oidc_provider') and compute_manager_with_ids.__contains__('set_as_oidc_provider') and \
-        existing_compute_manager['set_as_oidc_provider'] != compute_manager_with_ids['set_as_oidc_provider']:
+
+    if existing_compute_manager.__contains__('set_as_oidc_provider') and compute_manager_with_ids.__contains__('set_as_oidc_provider'):
+        if existing_compute_manager['set_as_oidc_provider'] != compute_manager_with_ids['set_as_oidc_provider']:
+            return True
+        if existing_compute_manager.__contains__('access_level_for_oidc') and compute_manager_with_ids.__contains__('access_level_for_oidc'):
+            if existing_compute_manager['access_level_for_oidc'] != compute_manager_with_ids['access_level_for_oidc']:
+                return True
+
+    if existing_compute_manager.__contains__('create_service_account') and compute_manager_with_ids.__contains__('create_service_account') and \
+        existing_compute_manager['create_service_account'] != compute_manager_with_ids['create_service_account']:
         return True
     return False
 
@@ -253,6 +279,8 @@ def main():
                     description=dict(required=False, type='str'),
                     server=dict(required=True, type='str'),
                     set_as_oidc_provider=dict(required=False, type='bool'),
+                    access_level_for_oidc=dict(required=False, choices=['FULL', 'LIMITED']),
+                    create_service_account=dict(required=False, type='bool'),
                     state=dict(required=True, choices=['present', 'absent']))
 
   module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
