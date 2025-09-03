@@ -91,6 +91,10 @@ EXAMPLES = '''
           hostname: "manager-2"
           compute: "domain-c49"
           storage: "datastore-43"
+          enable_ssh: true
+          allow_ssh_root_login: true
+          search_domains:
+            contoso.com
           default_gateway_addresses:
           - 10.112.203.253
           management_port_subnets:
